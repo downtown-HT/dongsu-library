@@ -3,102 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>인천동수중학교 책사랑 도서관 - 희망도서 신청</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>인천동수중학교 책사랑 도서관</title>
+  <!-- 폰트 및 Tailwind CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 동수중학교 로고 컬러 테마 설정 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Pretendard', 'sans-serif'] },
+          colors: {
+            dsNavy: '#2b3b7c',   // 로고의 네이비 블루
+            dsSky: '#d0ecfc',    // 로고의 스카이 블루
+            dsYellow: '#f3c431', // 로고의 노란색 포인트
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
+    body { background-color: #f4f8fb; }
+    /* 스크롤바 예쁘게 다듬기 */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   </style>
 </head>
-<body class="pb-16 text-slate-800">
+<body class="text-slate-800 antialiased pb-20">
 
-  <!-- 헤더 영역 -->
-  <header class="bg-[#1e3a8a] text-white shadow-lg p-6 md:p-8">
-    <div class="max-w-4xl mx-auto flex items-center space-x-3">
-      <div class="w-10 h-10 rounded-full bg-white text-blue-900 flex items-center justify-center font-black text-xl shadow">東</div>
+  <!-- 헤더 영역 (둥근 하단 모서리로 부드러운 느낌 강조) -->
+  <header class="bg-dsNavy text-white rounded-b-[2.5rem] shadow-lg pb-14 pt-10 px-6 relative overflow-hidden">
+    <!-- 배경 장식 (스카이 블루 원형) -->
+    <div class="absolute -top-10 -right-10 w-40 h-40 bg-dsSky rounded-full opacity-20 blur-2xl"></div>
+    
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-4 text-center md:text-left relative z-10">
+      <!-- 학교 로고 아이콘화 (이미지로 교체 가능) -->
+      <div class="w-16 h-16 bg-dsSky rounded-2xl flex items-center justify-center shadow-md rotate-3">
+        <div class="w-10 h-10 bg-dsNavy flex items-end justify-end p-1 relative">
+           <div class="w-4 h-4 bg-dsYellow"></div>
+        </div>
+      </div>
       <div>
-        <h2 class="text-xs text-blue-200 tracking-wider">Incheon Dongsu Middle School</h2>
-        <h1 class="text-2xl font-bold">인천동수중학교 책사랑 도서관</h1>
+        <h2 class="text-dsSky font-semibold tracking-wider text-sm mb-1">Incheon Dongsu Middle School</h2>
+        <h1 class="text-3xl font-extrabold tracking-tight">인천동수중학교 책사랑 도서관 ✨</h1>
+        <p class="mt-2 text-blue-100 text-sm font-medium">읽고 싶은 책이 도서관에 없다면 신청해주세요! 새 책으로 만나게 해드릴게요.</p>
       </div>
     </div>
   </header>
 
-  <main class="max-w-4xl mx-auto px-4 mt-8 space-y-8">
+  <!-- 메인 콘텐츠 영역 (위로 살짝 올라오게 배치) -->
+  <main class="max-w-4xl mx-auto px-4 -mt-6 space-y-6 relative z-20">
 
-    <!-- 1단계: 교내 소장도서 자체 DB 검색 -->
-    <section class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-      <h2 class="text-blue-800 font-bold text-lg mb-2">1단계: 먼저 우리 도서관에 있는지 확인해보세요</h2>
-      <p class="text-sm text-slate-500 mb-4">
-        도서명이나 저자명을 검색해 소장 여부를 확인하세요. 이미 소장 중인 책은 신청할 수 없습니다.
-      </p>
+    <!-- 1단계: 자체 DB 검색 -->
+    <section class="bg-white rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="bg-dsNavy text-white text-xs font-bold px-2.5 py-1 rounded-full">STEP 1</span>
+        <h2 class="text-dsNavy font-bold text-xl">우리 도서관에 있는 책일까요? 🧐</h2>
+      </div>
+      <p class="text-sm text-slate-500 mb-5 ml-1">도서명이나 저자명을 검색해보세요. 이미 있는 책은 바로 도서관에서 빌릴 수 있어요!</p>
 
-      <div class="flex gap-2 mb-4">
-        <input type="text" id="ownedSearchInput" placeholder="도서명 또는 저자명 입력" class="flex-1 px-4 py-2 text-sm border rounded-xl border-slate-300 focus:ring-2 focus:ring-blue-600 outline-none">
-        <button type="button" onclick="searchOwnedBooks()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-xl transition">검색</button>
+      <div class="flex gap-2 mb-2">
+        <input type="text" id="ownedSearchInput" placeholder="도서명 또는 저자명을 입력하세요" class="flex-1 px-5 py-3 text-sm bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-dsSky focus:border-dsNavy outline-none transition">
+        <button type="button" onclick="searchOwnedBooks()" class="px-6 py-3 bg-dsNavy hover:bg-[#1f2b5a] text-white text-sm font-bold rounded-2xl transition shadow-md">검색</button>
       </div>
       
-      <!-- 소장도서 검색 결과 박스 -->
-      <div id="ownedResultBox" class="hidden">
-        <div id="ownedResultList" class="space-y-2 max-h-56 overflow-y-auto"></div>
+      <!-- 검색 결과 박스 -->
+      <div id="ownedResultBox" class="hidden mt-4 bg-slate-50 rounded-2xl p-2 border border-slate-100">
+        <div id="ownedResultList" class="space-y-2 max-h-56 overflow-y-auto pr-2"></div>
       </div>
     </section>
 
-    <!-- 2단계: 신청폼 -->
-    <section class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-      <h2 class="text-blue-800 font-bold text-lg mb-4">2단계: 도서 검색 & 신청서 작성</h2>
-      
-      <!-- 알라딘 도서 검색 영역 -->
-      <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6 flex gap-2">
-        <input type="text" id="aladinQuery" placeholder="신청할 도서명 입력 (자동완성 검색)" class="flex-1 px-4 py-2 text-sm border rounded-xl border-blue-200 focus:ring-2 focus:ring-blue-600 outline-none">
-        <button type="button" onclick="searchAladinBook()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition">알라딘 검색</button>
+    <!-- 2단계: 희망도서 신청폼 -->
+    <section class="bg-white rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="bg-dsYellow text-dsNavy text-xs font-bold px-2.5 py-1 rounded-full">STEP 2</span>
+        <h2 class="text-dsNavy font-bold text-xl">희망도서 검색 & 신청서 작성 📝</h2>
       </div>
+      <p class="text-sm text-slate-500 mb-6 ml-1">도서관에 없는 책이라면 알라딘에서 검색 후 신청서를 제출해주세요.</p>
       
-      <!-- 알라딘 검색 결과 박스 -->
-      <div id="aladinResults" class="mb-4 space-y-2 max-h-60 overflow-y-auto hidden"></div>
+      <!-- 알라딘 검색 -->
+      <div class="bg-dsSky/30 p-5 rounded-2xl border border-dsSky mb-6">
+        <label class="block text-xs font-bold text-dsNavy mb-2 ml-1">📚 알라딘 자동완성 검색</label>
+        <div class="flex gap-2">
+          <input type="text" id="aladinQuery" placeholder="신청하고 싶은 책 제목을 입력하세요" class="flex-1 px-5 py-3 text-sm bg-white border border-white rounded-xl focus:ring-2 focus:ring-dsNavy outline-none shadow-sm transition">
+          <button type="button" onclick="searchAladinBook()" class="px-6 py-3 bg-dsNavy text-white text-sm font-bold rounded-xl shadow-md hover:bg-[#1f2b5a] transition">책 찾기</button>
+        </div>
+        <div id="aladinResults" class="mt-4 space-y-2 max-h-60 overflow-y-auto hidden pr-1"></div>
+      </div>
 
-      <!-- 희망도서 신청 폼 -->
-      <form id="wishForm" onsubmit="submitWishlist(event)" class="space-y-4">
+      <!-- 입력 폼 -->
+      <form id="wishForm" onsubmit="submitWishlist(event)" class="space-y-5">
         
         <!-- 신청자 정보 -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <select id="role" class="border p-2 text-sm rounded bg-white">
-            <option value="학생">학생</option>
-            <option value="교사">교사</option>
-          </select>
-          <input type="text" id="name" required placeholder="이름 (필수)" class="border p-2 text-sm rounded bg-white">
-          <input type="text" id="grade" placeholder="학년/반 (선택)" class="border p-2 text-sm rounded bg-white">
+        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+          <h3 class="text-sm font-bold text-slate-700 mb-3">나의 정보</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <select id="role" class="border border-slate-200 p-3 text-sm rounded-xl bg-white focus:ring-2 focus:ring-dsSky outline-none">
+              <option value="학생">학생</option>
+              <option value="교사">선생님</option>
+            </select>
+            <input type="text" id="name" required placeholder="이름 (필수)" class="border border-slate-200 p-3 text-sm rounded-xl bg-white focus:ring-2 focus:ring-dsSky outline-none">
+            <input type="text" id="grade" placeholder="학년/반 (예: 1학년 2반)" class="border border-slate-200 p-3 text-sm rounded-xl bg-white focus:ring-2 focus:ring-dsSky outline-none">
+          </div>
         </div>
-
-        <hr class="border-slate-100 my-4">
 
         <!-- 도서 상세 정보 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="text" id="title" required placeholder="도서명 (필수)" class="border p-2 text-sm rounded bg-slate-50 md:col-span-2">
-          <input type="text" id="author" required placeholder="저자 (필수)" class="border p-2 text-sm rounded bg-slate-50">
-          <input type="text" id="publisher" required placeholder="출판사 (필수)" class="border p-2 text-sm rounded bg-slate-50">
-          <input type="text" id="price" placeholder="정가" class="border p-2 text-sm rounded bg-slate-50">
-          <input type="text" id="isbn" placeholder="ISBN" class="border p-2 text-sm rounded bg-slate-50">
+        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+          <h3 class="text-sm font-bold text-slate-700 mb-3">신청할 도서 정보</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="text" id="title" required placeholder="도서명 (필수)" class="border border-slate-200 p-3 text-sm rounded-xl bg-white md:col-span-2 focus:ring-2 focus:ring-dsSky outline-none font-bold text-dsNavy">
+            <input type="text" id="author" required placeholder="저자 (필수)" class="border border-slate-200 p-3 text-sm rounded-xl bg-white focus:ring-2 focus:ring-dsSky outline-none">
+            <input type="text" id="publisher" required placeholder="출판사 (필수)" class="border border-slate-200 p-3 text-sm rounded-xl bg-white focus:ring-2 focus:ring-dsSky outline-none">
+            <input type="text" id="price" placeholder="정가 (자동입력)" class="border border-slate-200 p-3 text-sm rounded-xl bg-white focus:ring-2 focus:ring-dsSky outline-none">
+            <input type="text" id="isbn" placeholder="ISBN (자동입력)" class="border border-slate-200 p-3 text-sm rounded-xl bg-white focus:ring-2 focus:ring-dsSky outline-none text-slate-400">
+          </div>
+          
+          <textarea id="reason" rows="3" placeholder="이 책을 읽고 싶은 이유나 친구들에게 추천하는 이유를 적어주세요! (선택)" class="w-full border border-slate-200 p-4 text-sm rounded-xl mt-4 bg-white focus:ring-2 focus:ring-dsSky outline-none resize-none"></textarea>
         </div>
-
-        <textarea id="reason" rows="3" placeholder="신청 사유(선택) - 왜 이 책을 읽고 싶은지 적어주세요." class="w-full border p-2 text-sm rounded mt-4"></textarea>
         
-        <button type="submit" id="submitBtn" class="w-full py-3 mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition">
-          희망도서 신청하기
+        <button type="submit" id="submitBtn" class="w-full py-4 mt-2 bg-dsYellow hover:bg-[#e3b52a] text-dsNavy text-lg font-extrabold rounded-2xl shadow-lg transition transform hover:-translate-y-0.5">
+          🚀 희망도서 신청 완료하기
         </button>
       </form>
     </section>
   </main>
 
-  <footer class="text-center text-xs text-slate-400 mt-12 pb-8">
+  <footer class="text-center text-xs text-slate-400 mt-12 pb-8 font-medium">
     <p>인천동수중학교 책사랑 도서관 📖</p>
   </footer>
 
-  <!-- 자바스크립트 코드 영역 (반드시 여기에 위치해야 합니다) -->
   <script>
-    // ★★★ 중요: 여기에 메모장에 적어둔 본인의 웹 앱 URL을 따옴표 안에 꼭 붙여넣으세요! ★★★
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbz4Hc84Kji36UrBVqdAY_B7NRDvNrIQ77Bc4VXnt7zu2RdQvq7G5b_p4e45QnigHHNp/exec"; 
+    // ★★★ 중요: 여기에 메모장에 적어둔 웹 앱 URL 주소를 붙여넣으세요! ★★★
+    const GAS_URL = "여기에_웹앱URL_주소를_붙여넣으세요"; 
     
-    // 1. 소장도서(구글시트 DB) 검색 기능
+    // 1. 교내 소장도서 자체 DB 검색
     async function searchOwnedBooks() {
       const q = document.getElementById('ownedSearchInput').value.trim();
       if (!q) return alert("검색할 책 제목을 입력해주세요.");
@@ -106,7 +144,7 @@
       const resultBox = document.getElementById('ownedResultBox');
       const list = document.getElementById('ownedResultList');
       resultBox.classList.remove('hidden');
-      list.innerHTML = `<div class="p-3 text-center text-xs text-slate-400">도서관 서재를 뒤지는 중입니다...</div>`;
+      list.innerHTML = `<div class="p-4 text-center text-sm text-slate-500 font-medium">도서관 서재를 꼼꼼히 찾아보는 중입니다... 🕵️‍♂️</div>`;
 
       try {
         const res = await fetch(`${GAS_URL}?action=searchOwned&query=${encodeURIComponent(q)}`);
@@ -114,66 +152,64 @@
         
         if (json.data && json.data.length > 0) {
           list.innerHTML = json.data.map(b => `
-            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm flex justify-between items-center">
+            <div class="p-3.5 bg-white border border-slate-200 rounded-xl text-sm flex justify-between items-center shadow-sm mb-2">
               <div>
-                <span class="font-bold text-amber-900">${b.title}</span> 
-                <span class="text-slate-600">(${b.author} | ${b.publisher})</span>
-                <div class="text-xs text-slate-500 mt-1">출판년도: <b>${b.year || '-'}</b> | ISBN: ${b.isbn || '-'}</div>
+                <span class="font-bold text-dsNavy text-base">${b.title}</span> 
+                <span class="text-slate-500 ml-1">(${b.author} | ${b.publisher})</span>
+                <div class="text-xs text-slate-400 mt-1.5">출판년도: <b class="text-slate-500">${b.year || '-'}</b> | ISBN: ${b.isbn || '-'}</div>
               </div>
-              <span class="bg-amber-200 text-amber-900 px-2 py-1 rounded text-[11px] font-bold shrink-0">소장중</span>
+              <span class="bg-dsSky text-dsNavy px-3 py-1.5 rounded-lg text-xs font-bold shrink-0">도서관 소장중</span>
             </div>
           `).join('');
         } else {
-          list.innerHTML = `<div class="p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-sm font-bold flex items-center gap-2">🎉 '${q}' 은(는) 도서관에 없는 책입니다. 아래에서 신청을 진행해주세요!</div>`;
+          list.innerHTML = `<div class="p-4 bg-white border border-slate-200 rounded-xl text-sm font-bold flex items-center justify-center text-slate-700 shadow-sm">🎉 <span class="text-dsNavy ml-2">'${q}'</span> 은(는) 아직 도서관에 없네요! 아래에서 신청해주세요.</div>`;
         }
       } catch (err) {
-        list.innerHTML = `<div class="text-red-500 text-sm p-3">검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</div>`;
+        list.innerHTML = `<div class="text-red-500 text-sm p-4 text-center">검색 중 통신 오류가 발생했어요. 잠시 후 다시 시도해주세요.</div>`;
       }
     }
 
-    // 2. 알라딘 도서 검색 기능 (구글 서버 우회 방식 - 완벽 해결판)
+    // 2. 알라딘 도서 검색 (구글 프록시 우회 방식)
     async function searchAladinBook() {
       const q = document.getElementById('aladinQuery').value.trim();
       if (!q) return alert("도서명을 입력하세요.");
 
       const resBox = document.getElementById('aladinResults');
       resBox.classList.remove('hidden');
-      resBox.innerHTML = `<div class="p-3 text-center text-xs text-slate-400">알라딘 서점에서 찾는 중입니다...</div>`;
+      resBox.innerHTML = `<div class="p-4 text-center text-sm text-slate-500 font-medium">알라딘 서점에서 예쁜 표지를 가져오는 중입니다... 📚</div>`;
 
       try {
-        // 브라우저가 직접 알라딘으로 가지 않고, 내 구글 스크립트(GAS_URL)에게 검색을 요청함
         const res = await fetch(`${GAS_URL}?action=searchAladin&query=${encodeURIComponent(q)}`);
         const data = await res.json();
         
-        // 만약 알라딘 키가 아직 활성화되지 않았거나 오류가 있을 경우
         if (data.errorCode) {
-          resBox.innerHTML = `<div class="p-3 text-center text-xs text-red-500">알라딘 검색 오류: TTB키가 아직 승인 대기중이거나 잘못되었습니다. (직접 타이핑해서 신청해주세요)</div>`;
+          resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-sm text-red-500 border border-red-100">알라딘 검색이 일시적으로 제한되었습니다.<br>아래 양식에 도서 정보를 직접 적어서 신청해주세요!</div>`;
           return;
         }
 
         if (!data.item || data.item.length === 0) {
-          resBox.innerHTML = `<div class="p-3 text-xs text-slate-500 text-center">검색 결과가 없습니다. 도서명을 직접 입력해주세요.</div>`;
+          resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-sm text-slate-500 text-center border border-slate-200">검색 결과가 없어요. 책 제목을 직접 폼에 적어주세요.</div>`;
           return;
         }
 
         resBox.innerHTML = data.item.map(i => `
-          <div onclick='selBook(${JSON.stringify(i).replace(/'/g,"&apos;")})' class="p-3 bg-white border border-slate-200 hover:border-blue-500 rounded-lg cursor-pointer flex gap-3 items-center transition">
-            <img src="${i.cover || 'https://via.placeholder.com/50x70'}" class="w-10 h-14 object-cover rounded shadow-sm">
-            <div class="text-xs flex-1">
-              <div class="font-bold text-slate-800">${i.title}</div>
-              <div class="text-slate-500">${i.author} | ${i.publisher}</div>
-              <div class="text-blue-600 font-semibold mt-0.5">${Number(i.priceStandard||0).toLocaleString()}원</div>
+          <div onclick='selBook(${JSON.stringify(i).replace(/'/g,"&apos;")})' class="p-3 bg-white border border-slate-200 hover:border-dsSky hover:shadow-md rounded-xl cursor-pointer flex gap-3 items-center transition duration-200 mb-2">
+            <img src="${i.cover || 'https://via.placeholder.com/50x70'}" class="w-12 h-16 object-cover rounded-md shadow-sm border border-slate-100">
+            <div class="text-sm flex-1">
+              <div class="font-bold text-slate-800 line-clamp-1">${i.title}</div>
+              <div class="text-slate-500 text-xs mt-0.5">${i.author} | ${i.publisher}</div>
+              <div class="text-dsNavy font-black mt-1">${Number(i.priceStandard||0).toLocaleString()}원</div>
             </div>
-            <button type="button" class="text-xs bg-blue-50 text-blue-600 px-2.5 py-1 rounded font-medium shrink-0">선택</button>
+            <button type="button" class="text-xs bg-slate-100 hover:bg-dsNavy hover:text-white text-slate-600 px-3 py-2 rounded-lg font-bold shrink-0 transition">선택하기</button>
           </div>
         `).join('');
 
       } catch (err) {
-        resBox.innerHTML = `<div class="p-3 text-center text-xs text-red-500">통신 에러가 발생했습니다. 잠시 후 다시 시도해주세요.</div>`;
+        resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-sm text-red-500">통신 에러가 발생했습니다. 직접 입력해주세요.</div>`;
       }
     }
 
-    // 3. 검색된 알라딘 도서 선택 시 폼에 자동 입력
+    // 3. 선택된 도서 정보를 폼에 자동 입력
     function selBook(b) {
       document.getElementById('title').value = b.title || ''; 
       document.getElementById('author').value = b.author || '';
@@ -181,15 +217,16 @@
       document.getElementById('price').value = b.priceStandard ? Number(b.priceStandard).toLocaleString() : '';
       document.getElementById('isbn').value = b.isbn13 || b.isbn || ''; 
       document.getElementById('aladinResults').classList.add('hidden');
-      alert(`[${b.title}] 정보가 폼에 자동 입력되었습니다.`);
+      alert(`✨ [${b.title}] 책이 양식에 자동 입력되었습니다!`);
     }
 
-    // 4. 희망도서 신청서 최종 전송
+    // 4. 신청 폼 제출
     async function submitWishlist(e) {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
-      btn.innerText = "전송중...";
+      btn.innerHTML = "전송중... 🚀";
       btn.disabled = true;
+      btn.classList.add('opacity-70');
 
       const payload = {
         action: "addRequest", 
@@ -206,14 +243,16 @@
       
       try {
         await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
-        alert("희망도서 신청이 완료되었습니다!");
+        alert("🎉 희망도서 신청이 성공적으로 완료되었습니다! 선생님이 확인 후 구입을 진행할게요.");
         document.getElementById('wishForm').reset();
         document.getElementById('ownedResultBox').classList.add('hidden');
+        window.scrollTo(0,0);
       } catch (err) {
-        alert("통신 오류가 발생했습니다. 관리자에게 문의하세요.");
+        alert("통신 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       } finally {
-        btn.innerText = "희망도서 신청하기";
+        btn.innerHTML = "🚀 희망도서 신청 완료하기";
         btn.disabled = false;
+        btn.classList.remove('opacity-70');
       }
     }
   </script>
