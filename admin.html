@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"><title>사서 관리자</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body { background-color: #f1f5f9; padding: 2rem; }</style>
+</head>
+<body>
+  <div id="login" class="max-w-sm mx-auto mt-20 bg-white p-8 rounded shadow text-center">
+    <h2 class="text-lg font-bold mb-4">관리자 로그인</h2>
+    <input type="password" id="pwd" class="border p-2 w-full mb-4 rounded" placeholder="비밀번호">
+    <button onclick="login()" class="w-full bg-blue-800 text-white p-2 rounded">로그인</button>
+  </div>
+
+  <div id="dashboard" class="hidden max-w-5xl mx-auto bg-white p-6 rounded shadow">
+    <h1 class="text-xl font-bold mb-4">도서 신청 목록</h1>
+    <table class="w-full text-left text-sm border-collapse">
+      <thead class="bg-slate-100"><tr class="border-b"><th>이름</th><th>도서명/저자</th><th>사유</th><th>상태변경</th></tr></thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
+
+  <script>
+    // ★★★ 여기도 메모장에 적어둔 웹 앱 URL을 붙여넣으세요! ★★★
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz4Hc84Kji36UrBVqdAY_B7NRDvNrIQ77Bc4VXnt7zu2RdQvq7G5b_p4e45QnigHHNp/exec";
+    let PWD = "";
+
+    async function login() {
+      PWD = document.getElementById('pwd').value;
+      const res = await fetch(`${GAS_URL}?action=getRequests&password=${encodeURIComponent(PWD)}`);
+      const json = await res.json();
+      if(!json.success) return alert("비밀번호 오류");
+      
+      document.getElementById('login').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+      document.getElementById('list').innerHTML = json.data.map(i => `
+        <tr class="border-b">
+          <td class="p-2">${i.name} (${i.role})</td>
+          <td class="p-2"><b>${i.title}</b><br>${i.author}</td>
+          <td class="p-2">${i.reason}</td>
+          <td class="p-2">
+            <select onchange="chg(${i.rowIndex}, this.value)" class="border p-1">
+              <option ${i.status=='접수대기'?'selected':''}>접수대기</option>
+              <option ${i.status=='구입예정'?'selected':''}>구입예정</option>
+              <option ${i.status=='비치완료'?'selected':''}>비치완료</option>
+            </select>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function chg(row, stat) {
+      await fetch(GAS_URL, { method:"POST", body: JSON.stringify({action:"updateStatus", password:PWD, rowIndex:row, status:stat}) });
+      alert("변경되었습니다.");
+    }
+  </script>
+</body>
+</html>
