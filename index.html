@@ -131,8 +131,8 @@
       }
     }
 
-    // 2. 알라딘 도서 검색 기능 (CORS 프록시 우회 방식)
-    async function searchAladinBook() {
+    // 2. 알라딘 도서 검색 기능 (JSONP 방식)
+    function searchAladinBook() {
       const q = document.getElementById('aladinQuery').value.trim();
       if (!q) return alert("도서명을 입력하세요.");
 
@@ -140,35 +140,25 @@
       resBox.classList.remove('hidden');
       resBox.innerHTML = `<div class="p-3 text-center text-xs text-slate-400">알라딘 서점에서 찾는 중입니다...</div>`;
 
-      // ★★★ 여기에 본인의 알라딘 TTB 키를 다시 넣어주세요 ★★★
+      // ★★★ 여기에 발급받으신 본인의 TTB 키를 꼭 다시 넣어주세요 ★★★
       const TTB_KEY = "ttbhaeinpk2222001"; 
-      
-      // 알라딘 API 원본 주소
-      const aladinUrl = `https://www.aladin.co.kr/ttb/api/ItemSearch.aspx?ttbkey=${TTB_KEY}&Query=${encodeURIComponent(q)}&output=js&Version=20131101`;
-      
-      // 무료 CORS 프록시 주소를 붙여서 브라우저 차단 우회
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(aladinUrl)}`;
 
-      try {
-        const response = await fetch(proxyUrl);
-        const data = await response.json();
-        
-        // 프록시를 통해 가져온 텍스트(문자열) 데이터를 자바스크립트 객체로 변환
-        // 알라딘 API가 주는 형태 끝에 세미콜론(;)이 붙어오는 경우가 있어 이를 제거
-        let jsonString = data.contents;
-        if (jsonString.endsWith(';')) {
-           jsonString = jsonString.slice(0, -1);
-        }
-        const resultData = JSON.parse(jsonString);
+      // 기존 스크립트 찌꺼기가 남아있을 수 있으니 정리
+      const oldScript = document.getElementById('aladinScript');
+      if (oldScript) {
+        oldScript.remove();
+      }
 
-        if (!resultData.item || resultData.item.length === 0) {
+      // JSONP 콜백 함수 정의 (알라딘 API가 이 함수를 호출하며 데이터를 넘겨줌)
+      window.aladinCallback = function(data) {
+        if (!data || !data.item || data.item.length === 0) {
           resBox.innerHTML = `<div class="p-3 text-xs text-slate-500 text-center">검색 결과가 없습니다. 도서명을 직접 입력해주세요.</div>`;
           return;
         }
 
-        resBox.innerHTML = resultData.item.map(i => `
+        resBox.innerHTML = data.item.map(i => `
           <div onclick='selBook(${JSON.stringify(i).replace(/'/g,"&apos;")})' class="p-3 bg-white border border-slate-200 hover:border-blue-500 rounded-lg cursor-pointer flex gap-3 items-center transition">
-            <img src="${i.cover || 'https://via.placeholder.com/50x70'}" class="w-10 h-14 object-cover rounded shadow-sm">
+            <img src="${i.cover || 'https://via.placeholder.com/50x70'}" class="w-10 h-14 object-cover rounded shadow-sm" alt="책 표지">
             <div class="text-xs flex-1">
               <div class="font-bold text-slate-800">${i.title}</div>
               <div class="text-slate-500">${i.author} | ${i.publisher}</div>
@@ -177,11 +167,20 @@
             <button type="button" class="text-xs bg-blue-50 text-blue-600 px-2.5 py-1 rounded font-medium shrink-0">선택</button>
           </div>
         `).join('');
+      };
 
-      } catch (err) {
-        console.error(err);
-        resBox.innerHTML = `<div class="p-3 text-center text-xs text-red-500">알라딘 서버와 연결할 수 없습니다. 잠시 후 다시 시도하거나 정보를 직접 입력해주세요.</div>`;
-      }
+      // 동적 스크립트 생성 및 호출 (CORS 우회)
+      const script = document.createElement('script');
+      script.id = 'aladinScript';
+      
+      // 주의: callback=aladinCallback 파라미터가 핵심입니다.
+      script.src = `https://www.aladin.co.kr/ttb/api/ItemSearch.aspx?ttbkey=${TTB_KEY}&Query=${encodeURIComponent(q)}&output=JS&callback=aladinCallback&Version=20131101`;
+      
+      script.onerror = function() {
+        resBox.innerHTML = `<div class="p-3 text-center text-xs text-red-500">알라딘 서버와 통신이 원활하지 않습니다. TTB키를 확인하시거나 도서 정보를 직접 입력해주세요.</div>`;
+      };
+
+      document.body.appendChild(script);
     }
 
     // 3. 검색된 알라딘 도서 선택 시 폼에 자동 입력
