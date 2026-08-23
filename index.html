@@ -67,46 +67,34 @@
     </section>
   </main>
 
-  <script>
-    // ★★★ 여기에 메모장에 적어둔 웹 앱 URL을 따옴표 안에 붙여넣으세요! ★★★
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbz4Hc84Kji36UrBVqdAY_B7NRDvNrIQ77Bc4VXnt7zu2RdQvq7G5b_p4e45QnigHHNp/exec"; 
-    
-    function searchAladinBook() {
-      const q = document.getElementById('aladinQuery').value;
-      if(!q) return alert("도서명을 입력하세요.");
-      const script = document.createElement('script');
-      window.aladinCb = function(data) {
-        document.getElementById('aladinResults').innerHTML = (data.item||[]).map(i => `
-          <div onclick='selBook(${JSON.stringify(i).replace(/'/g,"&apos;")})' class="p-2 border rounded cursor-pointer hover:bg-blue-50 text-sm">
-            <b>${i.title}</b> (${i.author} | ${i.publisher}) - ${i.priceStandard}원
-          </div>
-        `).join('');
-      };
-      script.src = `https://www.aladin.co.kr/ttb/api/ItemSearch.aspx?ttbkey=ttbtest12345678001&Query=${encodeURIComponent(q)}&output=JS&callback=aladinCb&Version=20131101`;
-      document.body.appendChild(script);
-    }
+// 소장도서(구글시트) 검색 기능
+    async function searchOwnedBooks() {
+      const q = document.getElementById('ownedSearchInput').value.trim();
+      if (!q) return alert("검색할 책 제목을 입력해주세요.");
 
-    function selBook(b) {
-      document.getElementById('title').value = b.title; document.getElementById('author').value = b.author;
-      document.getElementById('publisher').value = b.publisher; document.getElementById('price').value = b.priceStandard;
-      document.getElementById('isbn').value = b.isbn13; document.getElementById('aladinResults').innerHTML = '';
-      alert("선택되었습니다.");
-    }
+      const resultBox = document.getElementById('ownedResultBox');
+      const list = document.getElementById('ownedResultList');
+      resultBox.classList.remove('hidden');
+      list.innerHTML = `<div class="p-3 text-center text-xs text-slate-400">도서관 서재를 뒤지는 중입니다...</div>`;
 
-    async function submitWishlist(e) {
-      e.preventDefault();
-      document.getElementById('submitBtn').innerText = "전송중...";
-      const payload = {
-        action: "addRequest", role: document.getElementById('role').value, name: document.getElementById('name').value,
-        gradeClass: document.getElementById('grade').value, title: document.getElementById('title').value,
-        author: document.getElementById('author').value, publisher: document.getElementById('publisher').value,
-        price: document.getElementById('price').value, isbn: document.getElementById('isbn').value, reason: document.getElementById('reason').value
-      };
-      await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
-      alert("신청 완료!");
-      document.getElementById('wishForm').reset();
-      document.getElementById('submitBtn').innerText = "희망도서 신청하기";
+      try {
+        const res = await fetch(`${GAS_URL}?action=searchOwned&query=${encodeURIComponent(q)}`);
+        const json = await res.json();
+        
+      if (json.data && json.data.length > 0) {
+          list.innerHTML = json.data.map(b => `
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
+              <span class="font-bold text-amber-900">${b.title}</span> 
+              <span class="text-slate-600">(${b.author} | ${b.publisher})</span>
+              <div class="text-xs text-slate-500 mt-1">출판년도: <b>${b.year || '-'}</b> | ISBN: ${b.isbn || '-'}</div>
+            </div>
+          `).join('');
+        } else {
+          list.innerHTML = `<div class="p-3 bg-emerald-50 text-emerald-800 rounded-lg text-sm font-bold">🎉 도서관에 없는 책입니다. 아래 2단계에서 신청을 진행해주세요!</div>`;
+        }
+      } catch (err) {
+        list.innerHTML = `<div class="text-red-500 text-sm p-3">검색 중 오류가 발생했습니다.</div>`;
+      }
     }
-  </script>
 </body>
 </html>
