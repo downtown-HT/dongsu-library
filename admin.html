@@ -1,57 +1,188 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8"><title>사서 관리자</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>사서 관리자 - 인천동수중학교 책사랑 도서관</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>body { background-color: #f1f5f9; padding: 2rem; }</style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <style>
+    body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; }
+  </style>
 </head>
-<body>
-  <div id="login" class="max-w-sm mx-auto mt-20 bg-white p-8 rounded shadow text-center">
-    <h2 class="text-lg font-bold mb-4">관리자 로그인</h2>
-    <input type="password" id="pwd" class="border p-2 w-full mb-4 rounded" placeholder="비밀번호">
-    <button onclick="login()" class="w-full bg-blue-800 text-white p-2 rounded">로그인</button>
+<body class="p-4 md:p-8 text-slate-800">
+  
+  <!-- 로그인 화면 -->
+  <div id="login" class="max-w-md mx-auto mt-20 bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center">
+    <div class="w-12 h-12 bg-blue-900 text-white rounded-full flex items-center justify-center font-black text-xl mx-auto mb-4 shadow">東</div>
+    <h2 class="text-xl font-bold text-slate-800 mb-1">관리자 대시보드 로그인</h2>
+    <p class="text-xs text-slate-500 mb-6">인천동수중학교 책사랑 도서관</p>
+    
+    <input type="password" id="pwd" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl mb-4 focus:ring-2 focus:ring-blue-600 focus:outline-none" placeholder="비밀번호를 입력하세요">
+    <button onclick="login()" class="w-full py-2.5 bg-blue-800 hover:bg-blue-900 text-white font-semibold rounded-xl text-sm transition">로그인</button>
   </div>
 
-  <div id="dashboard" class="hidden max-w-5xl mx-auto bg-white p-6 rounded shadow">
-    <h1 class="text-xl font-bold mb-4">도서 신청 목록</h1>
-    <table class="w-full text-left text-sm border-collapse">
-      <thead class="bg-slate-100"><tr class="border-b"><th>이름</th><th>도서명/저자</th><th>사유</th><th>상태변경</th></tr></thead>
-      <tbody id="list"></tbody>
-    </table>
+  <!-- 메인 대시보드 화면 -->
+  <div id="dashboard" class="hidden max-w-7xl mx-auto space-y-6">
+    
+    <!-- 상단 컨트롤 패널 -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+      <div>
+        <span class="text-xs text-blue-600 font-bold tracking-wider">STAFF ONLY</span>
+        <h1 class="text-2xl font-bold">희망도서 신청 관리 내역</h1>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="downloadExcel()" class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-lg border border-emerald-200 transition">
+          📥 엑셀(CSV) 다운로드
+        </button>
+        <button onclick="location.reload()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition">로그아웃</button>
+      </div>
+    </div>
+
+    <!-- 데이터 테이블 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table id="dataTable" class="w-full text-left text-sm text-slate-600 whitespace-nowrap">
+          <thead class="bg-slate-50 text-slate-700 border-b font-semibold">
+            <tr>
+              <th class="p-3">신청일시</th>
+              <th class="p-3">신청자</th>
+              <th class="p-3">학년/반</th>
+              <th class="p-3">도서명</th>
+              <th class="p-3">저자</th>
+              <th class="p-3">출판사</th>
+              <th class="p-3">정가</th>
+              <th class="p-3">ISBN</th>
+              <th class="p-3">신청사유</th>
+              <th class="p-3 text-center">처리상태</th>
+            </tr>
+          </thead>
+          <tbody id="list" class="divide-y divide-slate-100">
+            <!-- 자바스크립트에서 데이터가 삽입되는 영역 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <script>
-    // ★★★ 여기도 메모장에 적어둔 웹 앱 URL을 붙여넣으세요! ★★★
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbz4Hc84Kji36UrBVqdAY_B7NRDvNrIQ77Bc4VXnt7zu2RdQvq7G5b_p4e45QnigHHNp/exec";
+    // ★★★ index.html과 동일한 본인의 웹앱 URL을 입력하세요 ★★★
+    const GAS_URL = "여기에_웹앱URL_주소를_붙여넣으세요";
+    
     let PWD = "";
+    let requestData = []; // 엑셀 다운로드를 위해 데이터를 저장해두는 변수
 
+    // 1. 관리자 로그인 및 데이터 불러오기
     async function login() {
       PWD = document.getElementById('pwd').value;
-      const res = await fetch(`${GAS_URL}?action=getRequests&password=${encodeURIComponent(PWD)}`);
-      const json = await res.json();
-      if(!json.success) return alert("비밀번호 오류");
+      if(!PWD) return alert("비밀번호를 입력하세요.");
       
-      document.getElementById('login').classList.add('hidden');
-      document.getElementById('dashboard').classList.remove('hidden');
-      document.getElementById('list').innerHTML = json.data.map(i => `
-        <tr class="border-b">
-          <td class="p-2">${i.name} (${i.role})</td>
-          <td class="p-2"><b>${i.title}</b><br>${i.author}</td>
-          <td class="p-2">${i.reason}</td>
-          <td class="p-2">
-            <select onchange="chg(${i.rowIndex}, this.value)" class="border p-1">
-              <option ${i.status=='접수대기'?'selected':''}>접수대기</option>
-              <option ${i.status=='구입예정'?'selected':''}>구입예정</option>
-              <option ${i.status=='비치완료'?'selected':''}>비치완료</option>
-            </select>
-          </td>
-        </tr>
-      `).join('');
+      const btn = event.target;
+      btn.innerText = "로그인 중...";
+      
+      try {
+        const res = await fetch(`${GAS_URL}?action=getRequests&password=${encodeURIComponent(PWD)}`);
+        const json = await res.json();
+        
+        if(!json.success) {
+          alert("비밀번호가 일치하지 않습니다.");
+          btn.innerText = "로그인";
+          return;
+        }
+        
+        requestData = json.data; // 글로벌 변수에 데이터 저장
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        
+        const listBody = document.getElementById('list');
+        if (requestData.length === 0) {
+          listBody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-slate-400">접수된 신청 내역이 없습니다.</td></tr>`;
+          return;
+        }
+
+        // 테이블 렌더링
+        listBody.innerHTML = requestData.map(i => `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="p-3 text-xs text-slate-400">${i.date || '-'}</td>
+            <td class="p-3 font-medium text-slate-800">${i.name} <span class="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded ml-1">${i.role}</span></td>
+            <td class="p-3 text-xs">${i.gradeClass || '-'}</td>
+            <td class="p-3 font-bold text-blue-900 truncate max-w-[200px]" title="${i.title}">${i.title}</td>
+            <td class="p-3 text-xs truncate max-w-[150px]">${i.author}</td>
+            <td class="p-3 text-xs">${i.publisher}</td>
+            <td class="p-3 text-xs">${i.price ? i.price + '원' : '-'}</td>
+            <td class="p-3 text-xs text-slate-400">${i.isbn || '-'}</td>
+            <td class="p-3 text-xs truncate max-w-[150px] text-slate-500" title="${i.reason}">${i.reason || '-'}</td>
+            <td class="p-3 text-center">
+              <select onchange="chgStatus(${i.rowIndex}, this.value)" class="border border-slate-300 p-1 text-xs rounded font-semibold bg-white cursor-pointer focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                <option value="접수대기" ${i.status === '접수대기' ? 'selected' : ''}>접수대기</option>
+                <option value="구입예정" ${i.status === '구입예정' ? 'selected' : ''}>구입예정</option>
+                <option value="비치완료" ${i.status === '비치완료' ? 'selected' : ''}>비치완료</option>
+                <option value="신청취소" ${i.status === '신청취소' ? 'selected' : ''}>신청취소</option>
+              </select>
+            </td>
+          </tr>
+        `).join('');
+
+      } catch (err) {
+        alert("데이터를 불러오는 데 실패했습니다.");
+        btn.innerText = "로그인";
+      }
     }
 
-    async function chg(row, stat) {
-      await fetch(GAS_URL, { method:"POST", body: JSON.stringify({action:"updateStatus", password:PWD, rowIndex:row, status:stat}) });
-      alert("변경되었습니다.");
+    // 2. 처리 상태 변경
+    async function chgStatus(row, stat) {
+      try {
+        await fetch(GAS_URL, { 
+          method:"POST", 
+          body: JSON.stringify({ action:"updateStatus", password:PWD, rowIndex:row, status:stat }) 
+        });
+        alert("상태가 '" + stat + "'(으)로 변경되었습니다.");
+      } catch(err) {
+        alert("변경 통신 중 오류가 발생했습니다.");
+      }
+    }
+
+    // 3. 엑셀(CSV) 다운로드 기능
+    function downloadExcel() {
+      if (requestData.length === 0) return alert("다운로드할 데이터가 없습니다.");
+
+      // CSV 헤더 생성
+      const headers = ["신청일시", "구분", "이름", "학년/반", "도서명", "저자", "출판사", "정가", "ISBN", "신청사유", "상태"];
+      
+      // 데이터 배열을 CSV 문자열로 변환 (따옴표 처리 및 쉼표 구분)
+      const csvRows = [];
+      csvRows.push(headers.join(','));
+      
+      requestData.forEach(row => {
+        const values = [
+          row.date, row.role, row.name, row.gradeClass,
+          row.title, row.author, row.publisher, row.price, row.isbn, row.reason, row.status
+        ];
+        
+        // 쉼표나 줄바꿈이 있는 데이터를 위한 이스케이프 처리
+        const escapedValues = values.map(v => {
+          let str = String(v || "").replace(/"/g, '""'); 
+          return `"${str}"`;
+        });
+        csvRows.push(escapedValues.join(','));
+      });
+
+      const csvString = csvRows.join('\n');
+      
+      // 한글 깨짐 방지를 위한 BOM(\uFEFF) 추가
+      const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      
+      // 파일명 설정 (예: 희망도서신청목록_2026-08-23.csv)
+      const today = new Date().toISOString().split('T')[0];
+      link.setAttribute("href", url);
+      link.setAttribute("download", `희망도서신청목록_${today}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   </script>
 </body>
