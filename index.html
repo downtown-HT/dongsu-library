@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>인천동수중학교 책사랑 도서관 - 희망도서 신청</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <style>body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }</style>
+</head>
+<body class="pb-16">
+  <header class="bg-[#1e3a8a] text-white shadow-lg p-8">
+    <div class="max-w-4xl mx-auto flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-full bg-white text-blue-900 flex items-center justify-center font-black text-xl">東</div>
+      <div>
+        <h2 class="text-xs text-blue-200">Incheon Dongsu Middle School</h2>
+        <h1 class="text-2xl font-bold">인천동수중학교 책사랑 도서관</h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 mt-8 space-y-8">
+    <!-- 1단계: 독서로 임베드 -->
+    <section class="bg-white rounded-2xl p-6 shadow border border-slate-200">
+      <h2 class="text-blue-800 font-bold text-lg mb-2">1단계: 먼저 우리 도서관에 있는지 확인해보세요</h2>
+      <div class="w-full bg-slate-50 border border-slate-300 rounded-xl overflow-hidden relative" style="height: 450px;">
+        <iframe src="https://read365.edunet.net/PureScreen/SchoolSearch?schoolName=%EC%9D%B8%EC%B2%9C%EB%8F%99%EC%88%98%EC%A4%91%ED%95%99%EA%B5%90%EB%8F%84%EC%84%9C%EA%B4%80&provCode=E10&neisCode=E100000774" width="100%" height="100%" frameborder="0" class="absolute top-0 left-0 w-full h-full z-10 bg-white"></iframe>
+      </div>
+    </section>
+
+    <!-- 2단계: 신청폼 -->
+    <section class="bg-white rounded-2xl p-6 shadow border border-slate-200">
+      <h2 class="text-blue-800 font-bold text-lg mb-4">2단계: 도서 검색 & 신청서 작성</h2>
+      
+      <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6 flex gap-2">
+        <input type="text" id="aladinQuery" placeholder="신청할 도서명 입력" class="flex-1 px-4 py-2 border rounded-xl">
+        <button onclick="searchAladinBook()" class="px-5 py-2 bg-blue-600 text-white font-bold rounded-xl">검색</button>
+      </div>
+      <div id="aladinResults" class="mb-4 space-y-2 max-h-60 overflow-y-auto"></div>
+
+      <form id="wishForm" onsubmit="submitWishlist(event)" class="space-y-4">
+        <div class="grid grid-cols-3 gap-4">
+          <select id="role" class="border p-2 rounded"><option>학생</option><option>교사</option></select>
+          <input type="text" id="name" required placeholder="이름" class="border p-2 rounded">
+          <input type="text" id="grade" placeholder="학년/반 (선택)" class="border p-2 rounded">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <input type="text" id="title" required placeholder="도서명" class="border p-2 rounded col-span-2">
+          <input type="text" id="author" required placeholder="저자" class="border p-2 rounded">
+          <input type="text" id="publisher" required placeholder="출판사" class="border p-2 rounded">
+          <input type="text" id="price" placeholder="정가" class="border p-2 rounded">
+          <input type="text" id="isbn" placeholder="ISBN" class="border p-2 rounded">
+        </div>
+        <textarea id="reason" placeholder="신청 사유(선택)" class="w-full border p-2 rounded"></textarea>
+        <button type="submit" id="submitBtn" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl">희망도서 신청하기</button>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    // ★★★ 여기에 메모장에 적어둔 웹 앱 URL을 따옴표 안에 붙여넣으세요! ★★★
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz4Hc84Kji36UrBVqdAY_B7NRDvNrIQ77Bc4VXnt7zu2RdQvq7G5b_p4e45QnigHHNp/exec"; 
+    
+    function searchAladinBook() {
+      const q = document.getElementById('aladinQuery').value;
+      if(!q) return alert("도서명을 입력하세요.");
+      const script = document.createElement('script');
+      window.aladinCb = function(data) {
+        document.getElementById('aladinResults').innerHTML = (data.item||[]).map(i => `
+          <div onclick='selBook(${JSON.stringify(i).replace(/'/g,"&apos;")})' class="p-2 border rounded cursor-pointer hover:bg-blue-50 text-sm">
+            <b>${i.title}</b> (${i.author} | ${i.publisher}) - ${i.priceStandard}원
+          </div>
+        `).join('');
+      };
+      script.src = `https://www.aladin.co.kr/ttb/api/ItemSearch.aspx?ttbkey=ttbtest12345678001&Query=${encodeURIComponent(q)}&output=JS&callback=aladinCb&Version=20131101`;
+      document.body.appendChild(script);
+    }
+
+    function selBook(b) {
+      document.getElementById('title').value = b.title; document.getElementById('author').value = b.author;
+      document.getElementById('publisher').value = b.publisher; document.getElementById('price').value = b.priceStandard;
+      document.getElementById('isbn').value = b.isbn13; document.getElementById('aladinResults').innerHTML = '';
+      alert("선택되었습니다.");
+    }
+
+    async function submitWishlist(e) {
+      e.preventDefault();
+      document.getElementById('submitBtn').innerText = "전송중...";
+      const payload = {
+        action: "addRequest", role: document.getElementById('role').value, name: document.getElementById('name').value,
+        gradeClass: document.getElementById('grade').value, title: document.getElementById('title').value,
+        author: document.getElementById('author').value, publisher: document.getElementById('publisher').value,
+        price: document.getElementById('price').value, isbn: document.getElementById('isbn').value, reason: document.getElementById('reason').value
+      };
+      await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
+      alert("신청 완료!");
+      document.getElementById('wishForm').reset();
+      document.getElementById('submitBtn').innerText = "희망도서 신청하기";
+    }
+  </script>
+</body>
+</html>
