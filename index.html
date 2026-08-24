@@ -155,7 +155,7 @@
               <div>
                 <div class="font-bold text-dsNavy text-sm md:text-base">${b.title}</div> 
                 <div class="text-slate-500 mt-0.5">${b.author} | ${b.publisher}</div>
-                <div class="text-[10px] md:text-xs text-slate-400 mt-1">출판년도: ${b.year || '-'} | ISBN: ${b.isbn || '-'}</div>
+                <div class="text-[10px] md:text-xs text-slate-400 mt-1">출판년도: ${b.year || '-'} | 청구기호: <b>${b.callNo || '-'}</b></div>
               </div>
               <span class="bg-dsSky text-dsNavy px-2.5 py-1.5 rounded-lg text-[10px] md:text-xs font-bold text-center self-start sm:self-auto shrink-0">도서관 소장중</span>
             </div>
