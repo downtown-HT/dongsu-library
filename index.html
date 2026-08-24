@@ -168,7 +168,7 @@
       }
     }
 
-// 2. 알라딘 검색 (안전한 allorigins 프록시 사용)
+// 2. 알라딘 검색 (구글 스크립트 우회 방식으로 롤백 적용)
     async function searchAladinBook() {
       const q = document.getElementById('aladinQuery').value.trim();
       if (!q) return alert("도서명을 입력하세요.");
@@ -177,26 +177,13 @@
       resBox.classList.remove('hidden');
       resBox.innerHTML = `<div class="p-4 text-center text-xs md:text-sm text-slate-500">알라딘 서점에서 찾는 중입니다... 📚</div>`;
 
-      // ★★★ 여기에 선생님의 알라딘 TTB 키가 잘 들어있는지 확인해주세요 ★★★
-      const TTB_KEY = "ttbhaeinpk2222001"; 
-
-      // 알라딘 API 원본 주소
-      const aladinUrl = `https://www.aladin.co.kr/ttb/api/ItemSearch.aspx?ttbkey=${TTB_KEY}&Query=${encodeURIComponent(q)}&output=js&Version=20131101`;
-      
-      // 제한이 없는 allorigins 무료 우회 서버 사용 (raw 데이터 직접 호출)
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(aladinUrl)}`;
-
       try {
-        const response = await fetch(proxyUrl);
-        let text = await response.text();
+        // ★ 핵심: 문제가 된 allorigins가 아니라 선생님의 완벽한 구글 스크립트(GAS_URL)를 호출합니다!
+        const res = await fetch(`${GAS_URL}?action=searchAladin&query=${encodeURIComponent(q)}`);
+        const data = await res.json();
         
-        // 알라딘 API 응답 끝에 불필요한 세미콜론이 붙어있는 경우 제거
-        if (text.endsWith(';')) text = text.slice(0, -1);
-        
-        const data = JSON.parse(text);
-
         if (data.errorCode) {
-          resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500 border border-red-100">알라딘 API 키 오류: ${data.errorMessage}<br>직접 폼에 적어서 신청해주세요!</div>`;
+          resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500 border border-red-100">알라딘 검색이 일시적으로 제한되었습니다.<br>직접 폼에 적어서 신청해주세요!</div>`;
           return;
         }
 
@@ -222,8 +209,6 @@
         resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500 border border-red-100">알라딘 서버와 통신 중 오류가 발생했습니다.<br>직접 입력하여 신청해주세요.</div>`;
       }
     }
-
-
     // 3. 폼 자동 채우기
     function selBook(b) {
       document.getElementById('title').value = b.title || ''; 
