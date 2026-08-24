@@ -116,10 +116,10 @@
   </footer>
 
   <script>
-    // ★★★ 여기에 기존 웹 앱 URL 주소를 그대로 붙여넣으세요! ★★★
+    // ★★★ 기존 웹 앱 URL 주소를 그대로 붙여넣으세요! (DB 저장/검색용) ★★★
     const GAS_URL = "https://script.google.com/macros/s/AKfycbz4Hc84Kji36UrBVqdAY_B7NRDvNrIQ77Bc4VXnt7zu2RdQvq7G5b_p4e45QnigHHNp/exec"; 
     
-    // 1. 소장도서 검색 (청구기호 적용)
+    // 1. 소장도서 검색 
     async function searchOwnedBooks() {
       const q = document.getElementById('ownedSearchInput').value.trim();
       if (!q) return alert("검색할 책 제목을 입력해주세요.");
@@ -150,31 +150,66 @@
       }
     }
 
-  // 2. 카카오 도서 검색 API (응답 전문 분석용 임시 코드)
+    // 2. 카카오 도서 검색 API (구글 서버 거치지 않고 브라우저 직접 통신!)
     async function searchKakaoBook() {
       const q = document.getElementById('kakaoQuery').value.trim();
       if (!q) return alert("도서명을 입력하세요.");
 
       const resBox = document.getElementById('kakaoResults');
       resBox.classList.remove('hidden');
-      resBox.innerHTML = `<div class="p-4 text-center text-xs md:text-sm text-slate-500">카카오 서버에 요청 중... 🕵️‍♂️</div>`;
+      resBox.innerHTML = `<div class="p-4 text-center text-xs md:text-sm text-slate-500">카카오 서버에서 책을 찾는 중입니다... 📚</div>`;
+
+      // ★ 카카오 REST API 키 직접 입력
+      const KAKAO_API_KEY = "e9fd3ec223c2bd038efde1762252ad51";
 
       try {
-        const res = await fetch(`${GAS_URL}?action=searchKakao&query=${encodeURIComponent(q)}`);
+        // 구글 스크립트(GAS_URL)를 쓰지 않고 카카오 공식 주소로 직접 쏩니다!
+        const res = await fetch(`https://dapi.kakao.com/v3/search/book?query=${encodeURIComponent(q)}&size=20`, {
+          method: "GET",
+          headers: {
+            "Authorization": `KakaoAK ${KAKAO_API_KEY}`
+          }
+        });
         
-        // 날것의 텍스트 그대로 가져오기
-        const rawText = await res.text();
+        const data = await res.json();
         
-        // 화면에 빨간색으로 리스폰스 전문 출력
-        resBox.innerHTML = `
-          <div class="p-4 bg-slate-100 rounded-xl text-left text-xs md:text-sm text-red-600 border border-red-200 overflow-x-auto">
-            <b>🚨 카카오 API 리스폰스 전문:</b><br><br>
-            <pre class="whitespace-pre-wrap">${rawText}</pre>
+        if (data.errorType || data.msg) {
+          resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500 border border-red-100">API 오류: ${data.msg || '통신 실패'}<br>직접 폼에 적어서 신청해주세요!</div>`;
+          return;
+        }
+
+        const items = data.documents;
+        if (!items || items.length === 0) {
+          resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-xs md:text-sm text-slate-500 text-center border border-slate-200">검색 결과가 없어요. 직접 폼에 적어주세요.</div>`;
+          return;
+        }
+
+        resBox.innerHTML = items.map(i => {
+          const title = i.title || "-";
+          const author = (i.authors && i.authors.length > 0) ? i.authors.join(', ') : "-";
+          const publisher = i.publisher || "-";
+          const price = (i.sale_price && i.sale_price > 0) ? i.sale_price : (i.price || 0);
+          const cover = i.thumbnail || "https://via.placeholder.com/50x70";
+          const isbn = i.isbn ? i.isbn.split(' ').pop() : ""; 
+          
+          const bookData = { title, author, publisher, price, isbn };
+
+          return `
+          <div onclick='selBook(${JSON.stringify(bookData).replace(/'/g,"&apos;")})' class="p-2.5 md:p-3 bg-white border border-slate-200 hover:border-dsSky rounded-xl cursor-pointer flex gap-3 items-center transition mb-2 active:bg-slate-50">
+            <img src="${cover}" class="w-10 h-14 md:w-12 md:h-16 object-cover rounded-md shadow-sm border border-slate-100 shrink-0">
+            <div class="text-xs md:text-sm flex-1 min-w-0">
+              <div class="font-bold text-slate-800 truncate">${title}</div>
+              <div class="text-slate-500 text-[10px] md:text-xs mt-0.5 truncate">${author} | ${publisher}</div>
+              <div class="text-dsNavy font-black mt-1">${Number(price).toLocaleString()}원</div>
+            </div>
+            <button type="button" class="text-[10px] md:text-xs bg-slate-100 text-slate-600 px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg font-bold shrink-0">선택</button>
           </div>
-        `;
+          `
+        }).join('');
 
       } catch (err) {
-        resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500">구글 통신 실패: ${err.message}</div>`;
+        console.error("Kakao Direct Search Error:", err);
+        resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500 border border-red-100">서버와 통신 중 오류가 발생했습니다.<br>직접 입력하여 신청해주세요.</div>`;
       }
     }
 
