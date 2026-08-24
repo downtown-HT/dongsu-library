@@ -168,8 +168,8 @@
       }
     }
 
-// 2. 알라딘 검색 (안전한 allorigins 프록시 사용)
-    async function searchAladinBook() {
+// 2. 알라딘 검색 (최종 JSONP 방식 - 크롬/사파리 완벽 지원)
+    function searchAladinBook() {
       const q = document.getElementById('aladinQuery').value.trim();
       if (!q) return alert("도서명을 입력하세요.");
 
@@ -177,26 +177,19 @@
       resBox.classList.remove('hidden');
       resBox.innerHTML = `<div class="p-4 text-center text-xs md:text-sm text-slate-500">알라딘 서점에서 찾는 중입니다... 📚</div>`;
 
-      // ★★★ 여기에 선생님의 알라딘 TTB 키가 잘 들어있는지 확인해주세요 ★★★
+      // ★★★ 발급받으신 알라딘 TTB 키를 여기에 입력하세요 ★★★
       const TTB_KEY = "ttbhaeinpk2222001"; 
 
-      // 알라딘 API 원본 주소
-      const aladinUrl = `https://www.aladin.co.kr/ttb/api/ItemSearch.aspx?ttbkey=${TTB_KEY}&Query=${encodeURIComponent(q)}&output=js&Version=20131101`;
-      
-      // 제한이 없는 allorigins 무료 우회 서버 사용 (raw 데이터 직접 호출)
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(aladinUrl)}`;
+      // 이전에 생성된 스크립트 태그가 있다면 제거하여 꼬임을 방지합니다.
+      const oldScript = document.getElementById('aladinJsonpScript');
+      if (oldScript) {
+        oldScript.remove();
+      }
 
-      try {
-        const response = await fetch(proxyUrl);
-        let text = await response.text();
-        
-        // 알라딘 API 응답 끝에 불필요한 세미콜론이 붙어있는 경우 제거
-        if (text.endsWith(';')) text = text.slice(0, -1);
-        
-        const data = JSON.parse(text);
-
-        if (data.errorCode) {
-          resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500 border border-red-100">알라딘 API 키 오류: ${data.errorMessage}<br>직접 폼에 적어서 신청해주세요!</div>`;
+      // 알라딘 API가 호출할 콜백 함수 정의
+      window.aladinCb = function(data) {
+        if (!data || data.errorCode) {
+          resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500 border border-red-100">알라딘 검색에 실패했습니다. (키 오류 또는 제한)<br>직접 폼에 적어서 신청해주세요!</div>`;
           return;
         }
 
@@ -207,7 +200,7 @@
 
         resBox.innerHTML = data.item.map(i => `
           <div onclick='selBook(${JSON.stringify(i).replace(/'/g,"&apos;")})' class="p-2.5 md:p-3 bg-white border border-slate-200 hover:border-dsSky rounded-xl cursor-pointer flex gap-3 items-center transition mb-2 active:bg-slate-50">
-            <img src="${i.cover || 'https://via.placeholder.com/50x70'}" class="w-10 h-14 md:w-12 md:h-16 object-cover rounded-md shadow-sm border border-slate-100 shrink-0">
+            <img src="${i.cover || 'https://via.placeholder.com/50x70'}" class="w-10 h-14 md:w-12 md:h-16 object-cover rounded-md shadow-sm border border-slate-100 shrink-0" alt="도서 표지">
             <div class="text-xs md:text-sm flex-1 min-w-0">
               <div class="font-bold text-slate-800 truncate">${i.title}</div>
               <div class="text-slate-500 text-[10px] md:text-xs mt-0.5 truncate">${i.author} | ${i.publisher}</div>
@@ -216,11 +209,19 @@
             <button type="button" class="text-[10px] md:text-xs bg-slate-100 text-slate-600 px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg font-bold shrink-0">선택</button>
           </div>
         `).join('');
+      };
 
-      } catch (err) {
-        console.error("Aladin Search Error:", err);
-        resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500 border border-red-100">알라딘 서버와 통신 중 오류가 발생했습니다.<br>직접 입력하여 신청해주세요.</div>`;
-      }
+      // 스크립트 태그를 동적으로 생성하여 호출 (브라우저 차단 우회)
+      const script = document.createElement('script');
+      script.id = 'aladinJsonpScript';
+      // url 뒤에 &callback=aladinCb 파라미터를 붙이는 것이 핵심입니다.
+      script.src = `https://www.aladin.co.kr/ttb/api/ItemSearch.aspx?ttbkey=${TTB_KEY}&Query=${encodeURIComponent(q)}&output=JS&callback=aladinCb&Version=20131101`;
+      
+      script.onerror = function() {
+        resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500 border border-red-100">통신 에러가 발생했습니다. 잠시 후 다시 시도해주세요.</div>`;
+      };
+
+      document.body.appendChild(script);
     }
 
     // 3. 폼 자동 채우기
