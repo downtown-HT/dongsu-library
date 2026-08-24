@@ -150,59 +150,31 @@
       }
     }
 
-    // 2. 카카오 도서 검색 API
+  // 2. 카카오 도서 검색 API (응답 전문 분석용 임시 코드)
     async function searchKakaoBook() {
       const q = document.getElementById('kakaoQuery').value.trim();
       if (!q) return alert("도서명을 입력하세요.");
 
       const resBox = document.getElementById('kakaoResults');
       resBox.classList.remove('hidden');
-      resBox.innerHTML = `<div class="p-4 text-center text-xs md:text-sm text-slate-500">카카오 서버에서 책을 찾는 중입니다... 📚</div>`;
+      resBox.innerHTML = `<div class="p-4 text-center text-xs md:text-sm text-slate-500">카카오 서버에 요청 중... 🕵️‍♂️</div>`;
 
       try {
         const res = await fetch(`${GAS_URL}?action=searchKakao&query=${encodeURIComponent(q)}`);
-        const data = await res.json();
         
-        // 에러 방어 처리
-        if (data.errorCode || data.errorType) {
-          resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500 border border-red-100">API 통신 중 에러가 발생했습니다.<br>직접 폼에 적어서 신청해주세요!</div>`;
-          return;
-        }
-
-        const items = data.documents;
-        if (!items || items.length === 0) {
-          resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-xs md:text-sm text-slate-500 text-center border border-slate-200">검색 결과가 없어요. 직접 폼에 적어주세요.</div>`;
-          return;
-        }
-
-        resBox.innerHTML = items.map(i => {
-          // 카카오 데이터 규격에 맞게 파싱
-          const title = i.title || "-";
-          const author = (i.authors && i.authors.length > 0) ? i.authors.join(', ') : "-";
-          const publisher = i.publisher || "-";
-          const price = (i.sale_price && i.sale_price > 0) ? i.sale_price : (i.price || 0);
-          const cover = i.thumbnail || "https://via.placeholder.com/50x70";
-          // 카카오는 10자리, 13자리 ISBN을 공백으로 구분해서 주므로 13자리만 가져옵니다.
-          const isbn = i.isbn ? i.isbn.split(' ').pop() : ""; 
-          
-          const bookData = { title, author, publisher, price, isbn };
-
-          return `
-          <div onclick='selBook(${JSON.stringify(bookData).replace(/'/g,"&apos;")})' class="p-2.5 md:p-3 bg-white border border-slate-200 hover:border-dsSky rounded-xl cursor-pointer flex gap-3 items-center transition mb-2 active:bg-slate-50">
-            <img src="${cover}" class="w-10 h-14 md:w-12 md:h-16 object-cover rounded-md shadow-sm border border-slate-100 shrink-0">
-            <div class="text-xs md:text-sm flex-1 min-w-0">
-              <div class="font-bold text-slate-800 truncate">${title}</div>
-              <div class="text-slate-500 text-[10px] md:text-xs mt-0.5 truncate">${author} | ${publisher}</div>
-              <div class="text-dsNavy font-black mt-1">${Number(price).toLocaleString()}원</div>
-            </div>
-            <button type="button" class="text-[10px] md:text-xs bg-slate-100 text-slate-600 px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg font-bold shrink-0">선택</button>
+        // 날것의 텍스트 그대로 가져오기
+        const rawText = await res.text();
+        
+        // 화면에 빨간색으로 리스폰스 전문 출력
+        resBox.innerHTML = `
+          <div class="p-4 bg-slate-100 rounded-xl text-left text-xs md:text-sm text-red-600 border border-red-200 overflow-x-auto">
+            <b>🚨 카카오 API 리스폰스 전문:</b><br><br>
+            <pre class="whitespace-pre-wrap">${rawText}</pre>
           </div>
-          `
-        }).join('');
+        `;
 
       } catch (err) {
-        console.error("Kakao Search Error:", err);
-        resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500 border border-red-100">서버와 통신 중 오류가 발생했습니다.<br>직접 입력하여 신청해주세요.</div>`;
+        resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500">구글 통신 실패: ${err.message}</div>`;
       }
     }
 
