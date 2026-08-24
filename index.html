@@ -150,60 +150,31 @@
       }
     }
 
-    // 2. YES24 오픈 API 검색 
+// 2. YES24 오픈 API 검색 (응답 전문 분석용 임시 코드)
     async function searchYes24Book() {
       const q = document.getElementById('yes24Query').value.trim();
       if (!q) return alert("도서명을 입력하세요.");
 
       const resBox = document.getElementById('yes24Results');
       resBox.classList.remove('hidden');
-      resBox.innerHTML = `<div class="p-4 text-center text-xs md:text-sm text-slate-500">YES24에서 검색 중입니다... 📚</div>`;
+      resBox.innerHTML = `<div class="p-4 text-center text-xs md:text-sm text-slate-500">YES24 서버에 요청 중... 🕵️‍♂️</div>`;
 
       try {
         const res = await fetch(`${GAS_URL}?action=searchYes24&query=${encodeURIComponent(q)}`);
-        const data = await res.json();
         
-        // YES24 API 키 오류 또는 호출 한도 초과 시
-        if (data.errorCode || (data.status && data.status !== 200)) {
-          resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500 border border-red-100">API 응답에 오류가 발생했습니다.<br>직접 폼에 적어서 신청해주세요!</div>`;
-          return;
-        }
-
-        // YES24 데이터 구조 파싱 방어 코드
-        let items = data.items || data.itemList || data.goodsList || data.data || data.item;
-        if (!items || items.length === 0) {
-          resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-xs md:text-sm text-slate-500 text-center border border-slate-200">검색 결과가 없어요. 직접 폼에 적어주세요.</div>`;
-          return;
-        }
-
-        resBox.innerHTML = items.map(i => {
-          // YES24 응답 구조에 맞게 항목 연결
-          const title = i.title || i.goodsName || i.bookName || "-";
-          const author = i.author || i.writer || i.authorName || "-";
-          const publisher = i.publisher || i.company || i.pubName || "-";
-          const price = i.price || i.priceStandard || i.salesPrice || i.goodsPrice || 0;
-          const cover = i.cover || i.imageUrl || i.image || "https://via.placeholder.com/50x70";
-          const isbn = i.isbn13 || i.isbn || i.goodsNo || "";
-          
-          // selBook 함수로 넘길 데이터를 깔끔하게 정리
-          const bookData = { title, author, publisher, price, isbn };
-
-          return `
-          <div onclick='selBook(${JSON.stringify(bookData).replace(/'/g,"&apos;")})' class="p-2.5 md:p-3 bg-white border border-slate-200 hover:border-dsSky rounded-xl cursor-pointer flex gap-3 items-center transition mb-2 active:bg-slate-50">
-            <img src="${cover}" class="w-10 h-14 md:w-12 md:h-16 object-cover rounded-md shadow-sm border border-slate-100 shrink-0">
-            <div class="text-xs md:text-sm flex-1 min-w-0">
-              <div class="font-bold text-slate-800 truncate">${title}</div>
-              <div class="text-slate-500 text-[10px] md:text-xs mt-0.5 truncate">${author} | ${publisher}</div>
-              <div class="text-dsNavy font-black mt-1">${Number(price).toLocaleString()}원</div>
-            </div>
-            <button type="button" class="text-[10px] md:text-xs bg-slate-100 text-slate-600 px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg font-bold shrink-0">선택</button>
+        // 데이터를 예쁘게 포장(JSON)하지 않고, 서버가 준 날것(Text) 그대로 가져옵니다.
+        const rawText = await res.text();
+        
+        // 가져온 날것의 데이터를 빨간색 글씨로 화면에 전부 찍어줍니다.
+        resBox.innerHTML = `
+          <div class="p-4 bg-slate-100 rounded-xl text-left text-xs md:text-sm text-red-600 border border-red-200 overflow-x-auto">
+            <b>🚨 YES24 API 리스폰스 전문:</b><br><br>
+            <pre class="whitespace-pre-wrap">${rawText}</pre>
           </div>
-          `
-        }).join('');
+        `;
 
       } catch (err) {
-        console.error("YES24 Search Error:", err);
-        resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500 border border-red-100">서버와 통신 중 오류가 발생했습니다.<br>직접 입력하여 신청해주세요.</div>`;
+        resBox.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-xs md:text-sm text-red-500">구글 통신 자체 실패: ${err.message}</div>`;
       }
     }
 
